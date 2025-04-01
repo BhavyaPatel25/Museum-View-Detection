@@ -1,4 +1,4 @@
-# Museum Detection
+# Museum View Detection
 
 ## Description
 
@@ -20,7 +20,7 @@ The project is divided into two phases:
 * Design and implement a CNN model from scratch using PyTorch.
 * Train and validate the CNN model using the dataset, ensuring an automated train-test split.
 * Optimize CNN hyperparameters (e.g., number of convolutional layers, pooling layers).
-* Compare the CNN’s performance against Decision Trees, Random Forests, and Boosting models.
+* Compare various CNN’s model performance against each other.
 * The trained CNN should be able to classify individual images in real-time.
 
 ## Requirements to run the code
@@ -34,7 +34,7 @@ The project is divided into two phases:
 You need to install the following Python packages before running the notebooks:
 
 ```python
-pip install numpy scikit-learn pillow
+pip install torch torchvision scikit-learn matplotlib pillow
 ```
 
 ## Instruction to train/validate model
@@ -53,8 +53,16 @@ To train the model, follow these steps:
 4. **Initialize the model:** Choose the appropriate machine learning model based on the task.
 5. **Train the model:** Fit the model to the training data.
 
+    *For scikit-models:*
+
     ```python
    model.fit(X_train, y_train)
+    ```
+    
+    *For CNN:*
+   
+    ```python
+    model.train()
     ```
 
 ### Validating the Model
@@ -62,12 +70,25 @@ To train the model, follow these steps:
 After training, evaluate the model's performance using appropriate metrics:
 
 1. **Make predictions on the test set:**
+
+    *For scikit-models:*
    
      ```python
    y_pred = model.predict(X_test)
      ```
+
+    *For CNN:*
+     
+    ```python
+    images = images.to(device)
+    outputs = model(images)
+    _, predicted = torch.max(outputs, 1)
+    y_pred.extend(predicted.cpu().numpy())
+    y_true.extend(labels.numpy())
+    ```
+     
    
-2. **Compute evaluation metrics:**
+3. **Compute evaluation metrics:**
    
     ```python
     from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score, ConfusionMatrixDisplay
@@ -81,7 +102,7 @@ After training, evaluate the model's performance using appropriate metrics:
     print(f'Recall: {recall * 100:.2f}%')
     print(f'F1 Score: {f1score * 100:.2f}%')
     ```
-3. **Display the confusion matrix:**
+4. **Display the confusion matrix:**
 
     ```python
     ConfusionMatrixDisplay.from_predictions(y_test, y_pred, display_labels=['indoor', 'outdoor'])
@@ -94,6 +115,8 @@ After training, evaluate the model's performance using appropriate metrics:
 1. Extract the pretrained models from [Models.zip](Models.zip)
 2. Load the model using the below given code
 
+    *For scikit-models:*
+   
     ```python
     import pickle
     
@@ -105,7 +128,16 @@ After training, evaluate the model's performance using appropriate metrics:
 
     model = load_model_pickle('path_to_model.pkl')
     ```
-3. Use the preprocessing function given below
+
+    *For CNN:*
+
+    ```python
+    model = torch.load(model_path, weights_only=False)
+    ```
+    
+4. Use the preprocessing function given below
+
+    *For scikit-models:*
 
     ```python
     from PIL import Image
@@ -121,8 +153,39 @@ After training, evaluate the model's performance using appropriate metrics:
 
     test_image = load_single_images('path_to_test_image.jpg')
     ```
+
+    *For CNN:*
+
+    ```python
+    def preprocess_for_cnn(image):
+    transform = transforms.Compose([
+        transforms.Resize((64, 64)),
+        transforms.ToTensor()
+    ])
+    image = Image.open(image).convert('RGB')
+    input_tensor = transform(image).unsqueeze(0)  # Add batch dimension
+    return input_tensor
+    ```
+    
 4. Use `model.predict(test_image)` for testing the model.
 5. If `prediction == 0` then the image belongs to Indoor Museum Class, else if `prediction == 1` then image belongs to Outdoor Museum Class.
+
+## Run your own custom image using website
+
+[https://neural-ninjas.streamlit.app/](https://neural-ninjas.streamlit.app/)
+
+This Streamlit web app allows users to classify museum images as Indoor or Outdoor using both classical Machine Learning and CNN-based Deep Learning models.
+
+🔍 Features:
+* Upload your image (JPG/PNG) and get a quick prediction.
+* Dynamically load models from the Models/ directory.
+* Supports multiple CNN architectures (Model_1 to Model_4) and traditional ML models.
+* Automatically applies the appropriate preprocessing for each model type.
+* Clean, interactive UI built with Streamlit.
+
+🧠 Model Support:
+* Classical ML models (.pkl)
+* PyTorch CNN models (.pth)
 
 ## How to obtain the dataset
 
